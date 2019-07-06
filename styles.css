@@ -25,6 +25,26 @@ body{
     margin-left: 0;
 }
 
+#tip-wrapper{
+    margin: 10px;
+    background: #c47586;
+    border: solid grey 1px;
+    padding: 10px;
+}
+
+#tip-input{
+    display: inline-block;
+}
+
+#tip-header{
+    display: inline;
+}
+
+#tip-amt-span{
+    font-weight: bold;
+    float: right;
+}
+
 .item-header {
     display: inline;
 }
