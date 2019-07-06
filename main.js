@@ -14,7 +14,7 @@ function setEventsListener() {
     //Event Listener: Will update number of owners when button is clicked.
     const OKbutton = document.getElementById("OKbutton");
     OKbutton.addEventListener("click", onOKButtonClick);
-    /*Event Listener: When user clicks into input box, price of the item
+    /*Event Listener: When user clicks into item price input box, price of the item
     should change with user input*/
     const priceInput = document.querySelector(".item-price-input");
     document.addEventListener("change", (eventTarget) => {
@@ -24,6 +24,10 @@ function setEventsListener() {
                 eventTarget.srcElement.parentElement.childNodes[4]);
         }
     });
+    /*EventListener: When user clicks into tip input box, tip amt should change 
+    with user input*/
+    const tipInputElement = document.querySelector("#tip-input");
+    document.addEventListener("change", getTipAmt);
     //Event Listener: When user clicks on a checkbox, update the Item object's claims
     document.addEventListener("click", (eventTarget) => {
         const className = eventTarget.srcElement.className;
@@ -47,11 +51,14 @@ function setEventsListener() {
     //appears and allows user to enter a new name for item
     setLabelEventListeners();
 
-    //Event listeners to add functionality to add item and caluclate
+    //Event listeners to add functionality to add item, tip, tax and calculate
     const addItemButton = document.getElementById("add-item-button");
     addItemButton.addEventListener("click", addItem);
     const calculateButton = document.getElementById("calculate-button");
     calculateButton.addEventListener("click", onCalculateButtonClick);
+    const addTipButton = document.getElementById("add-tip-button");
+    addTipButton.addEventListener("click", createTipDiv);
+    //TO DO: set event listener for + Tax button
 }
 
 
@@ -177,7 +184,7 @@ function updateOwnerName(idEnding){
         //updates the name choice in the item box
         if(itemsArray.length > 0){
             const increment = parseInt(numOwners);
-            let ownerLIArray = document.querySelectorAll("#owners-list li span");
+            let ownerLIArray = document.querySelectorAll(".owners-list li span");
             for(let i=parseInt(idEnding)-1; i<ownerLIArray.length; i += increment){
                 ownerLIArray[i].textContent = inputtedName.value;
             }
@@ -226,8 +233,15 @@ function hideInputField(idEnding, type){
 }
 
 function onCalculateButtonClick() {
+    resetOwnerTotals();
+    resetMessages();
     calculate();
+    checkTotal();
     displaySummary();
+}
+
+function resetMessages(){
+    document.getElementById("error-div").textContent = "";
 }
 
 function getNumOwners() {
@@ -289,6 +303,36 @@ function getItemPrice(inputID, textElement) {
 
     //update the running total)
     updateRunningTotal(oldPrice, price);
+}
+
+
+//displays the new tip amount and updates running total
+function getTipAmt(){
+   //input is not a number, so default the value to zero
+    const tipInputElement = document.getElementById("tip-input");
+    let newTipAmt;
+    if(isNaN(parseFloat(tipInputElement.value))){
+        newTipAmt = 0.00;
+    }else{
+        newTipAmt = parseFloat(tipInputElement.value, 2);
+    }
+
+    //keep track of old tip amt to update runningTotal
+    const tipSpanElement = document.getElementById("tip-amt-span");
+    let oldTipAmt;
+    //this is the first time tip is being entered, so old tip - $0
+    if(tipSpanElement.textContent == ""){
+        oldTipAmt = 0.00;
+    }else{
+    //else, grab the old tip amount and convert it into a float    
+        const oldTipAmtStr = tipSpanElement.textContent.replace("$", "");
+        oldTipAmt = parseFloat(oldTipAmtStr);
+    }
+
+    //update the span with the newest tip amount
+    tipSpanElement.textContent = "$"+newTipAmt;
+
+    updateRunningTotal(oldTipAmt, newTipAmt);
 }
 
 function addItem() {
@@ -367,7 +411,7 @@ function makeOwnerSection() {
     const newOwnersDiv = document.createElement("div");
     newOwnersDiv.className = "owners-wrap";
     const newUL = document.createElement("ul");
-    newUL.id = "owners-list";
+    newUL.className = "owners-list";
     for (let i = 0; i < numOwners; i++) {
         const newListItem = document.createElement("li");
         const newSpan = document.createElement("span");
@@ -454,11 +498,13 @@ function updateClaimsAll(ancestorWrap){
 
 }
 
+//calculates the alloated prices for the items and pushes to the owner objects
 function calculate() {
-    resetOwnerTotals();
+    let itemsSubtotal = 0;
     for (let i = 0; i < itemsArray.length; i++) {
         const targetItem = itemsArray[i];
         const allocPrice = targetItem.price / targetItem.numClaimers;
+        itemsSubtotal += parseFloat(targetItem.price); //to get the subtotal for all items and all owners
     
         for (let j = 0; j < targetItem.claimed.length; j++) {
             if (targetItem.claimed[j] > 0) {
@@ -468,13 +514,113 @@ function calculate() {
         }
 
     }
-    console.log("itemsArraylength: " + itemsArray.length);
-}
-//createTax()
-//createTip()
-//function allocateTax()
 
-//function allocateTip()
+    //TO DO: call allocateTax and allocateTip
+    allocateTip(itemsSubtotal);
+}
+
+//Checks that sum of allocated totals equals runningTotal
+//If not, prints error message or allocates the difference if due to rounding
+function checkTotal(){
+    let allocatedTotalAll = 0;
+    let highestOwner = 0; //figure out who has highest subtotal to allocate rounding diff to
+
+    for(let i=0; i<ownersArray.length; i++){
+        allocatedTotalAll += parseFloat(ownersArray[i].subtotal) + parseFloat(ownersArray[i].allocTip);
+        console.log("i: " + i + " allocated total = " + allocatedTotalAll);
+        if(ownersArray[i].subtotal > ownersArray[highestOwner]){
+            highestOwner = i;
+        }
+    }
+    const difference = (allocatedTotalAll - runningTotal).toFixed(2);
+    console.log("difference: " + difference);
+    if(difference < .01 && difference > -.01){
+        console.log("no difference between allocated and running total");
+        return;
+    }else if (difference == .01 || difference == -.01){
+        console.log("difference is due to rounding");
+        if(difference < .01 && difference > -.01){
+            //plug the difference to tax and tip
+            if(document.getElementById("tip-div" == null)){
+                ownersArray[highestOwner].allocTip += difference;
+                displaySummary();
+            }else{
+            //if tax and tip div has not yet been created, allocate to owner's first item
+                const ownersFirstItem = ownersArray[highestOwner].claimedItems[0];
+                ownersFirstItem[1] += difference;
+                displaySummary();
+            }
+        }
+    }else{//difference is due to an unallocated item
+        const errorDiv = document.getElementById("error-div");
+        errorDiv.textContent = "Allocated Total = $" + parseFloat(allocatedTotalAll).toFixed(2) +
+            ". One or more items may not have been allocated...";
+    }
+}
+
+function createTipDiv(){
+    //if tip has not been created yet, make the tip 
+    if(document.getElementById("tip-wrapper") == null){
+        const tipDiv = document.createElement("div");
+        tipDiv.id = "tip-wrapper";
+        const tipHeader = document.createElement("h4");
+        tipHeader.textContent = "Tax & Tip";
+        tipHeader.id = "tip-header";
+        const tipInput = document.createElement("input");
+        tipInput.id = "tip-input";
+        tipInput.setAttribute("type", "number");
+        tipInput.setAttribute("placeholder", "Enter tip amount");
+        const tipAmtSpan = document.createElement("span");
+        tipAmtSpan.id = "tip-amt-span";
+    
+        tipDiv.appendChild(tipHeader);
+        tipDiv.appendChild(tipInput);
+        tipDiv.appendChild(document.createElement("br"));
+        tipDiv.appendChild(tipInput);
+        tipDiv.appendChild(tipAmtSpan);
+    
+        //place tips above the buttons div (always the last item)
+        const buttonsDiv = document.getElementById("buttons-div");
+        buttonsDiv.prepend(tipDiv);
+    }else{
+        //else tip has already been created, so do nothing
+        return;
+    }
+}
+
+
+function allocateTip(populationSubtotal){
+    const tipInputElement = document.getElementById("tip-input");
+    let tipAmt;
+    console.log("entered allocateTip()");
+    if(tipInputElement == null){
+        //tip hasn't been created yet, so do nothing
+        return;
+    }else{
+        //get inputted tip amt
+        tipAmt = parseFloat(tipInputElement.value, 2);
+        if(isNaN(tipAmt)){
+            tipAmt = 0.00;
+        }
+    }
+
+
+    //allocate the tip amount to each owner
+    //pushes allocated tip amount to each owner object
+    for (let i=0; i<ownersArray.length; i++){
+        let proportion  = ownersArray[i].subtotal/populationSubtotal;
+        console.log("populationSubtotal is " + populationSubtotal);
+        console.log("porportion is: " + proportion);
+        ownersArray[i].proportion = parseFloat(proportion).toFixed(2);
+        let allocTip = (proportion * tipAmt);
+        ownersArray[i].allocTip = allocTip;
+        console.log(ownersArray[i].nickname + ": subtotal: " + ownersArray[i].subtotal +", "
+            +"proportion: " + ownersArray[i].proportion +", " 
+            + "allocTip: " + ownersArray[i].allocTip
+        );
+    }
+
+}
 
 function resetOwnerTotals() {
     for (let i = 0; i < ownersArray.length; i++) {
@@ -509,6 +655,11 @@ function displaySummary() {
         newSpan_name.className = "nickname-span";
         newSpan_name.textContent = targetOwner.nickname + ": ";
 
+        //TO DO: update proportion even if tip is not added in yet
+        // const newSpan_proportion = document.createElement("span");
+        // newSpan_proportion.className = "proportion-span";
+        // newSpan_proportion.textContent = targetOwner.proportion * 100 + "%";
+
         const newUL_claimedItems = document.createElement("ul");
         let targetOwnerTotal = 0;
         for (let j = 0; j < targetOwner.claimedItems.length; j++) {
@@ -516,15 +667,29 @@ function displaySummary() {
             const targetClaimedItem = targetOwner.claimedItems[j];
             const claimedItemCost = targetClaimedItem[1];
             targetOwnerTotal += claimedItemCost;
-            newLI_item.textContent = targetClaimedItem[0].itemName + " - $" + claimedItemCost.toFixed(2);
+            newLI_item.textContent = targetClaimedItem[0].itemName + " - $" + parseFloat(claimedItemCost).toFixed(2);
             newUL_claimedItems.appendChild(newLI_item);
         }
 
+        //begin section for owner's tip and tax
+        const newLI_tip = document.createElement("li");
+        newLI_tip.className = "liTip";
+        newLI_tip.textContent = "Tax & Tip - $" + parseFloat(ownersArray[i].allocTip).toFixed(2);
+        // const newLI_tax = document.createElement("li");
+        // newLI_tax.className = "liTax";
+        //end section for owner's tip and tax 
+        //add owner's allocated tip to the subtotal
+        newUL_claimedItems.appendChild(newLI_tip);
+        targetOwnerTotal += parseFloat(ownersArray[i].allocTip);
+        targetOwnerTotal = targetOwnerTotal;
+        console.log("targetOwnerTotal: " + targetOwnerTotal);
+
         const newSpan_ownerTotal = document.createElement("span")
         newSpan_ownerTotal.className = "ownerTotal-span";
-        newSpan_ownerTotal.textContent = "$"+ targetOwnerTotal.toFixed(2);
+        newSpan_ownerTotal.textContent = "$"+ parseFloat(targetOwnerTotal).toFixed(2);
 
         newDiv_owner.appendChild(newSpan_name);
+        // newDiv_owner.appendChild(newSpan_proportion);
         newDiv_owner.appendChild(newSpan_ownerTotal);
         newDiv_owner.appendChild(newUL_claimedItems);
         newWrapperDiv.appendChild(newDiv_owner);

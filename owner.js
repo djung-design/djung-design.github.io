@@ -3,12 +3,16 @@ class Owner{
         this.id = id;
         this.nickname = "Person " + id;
         this.subtotal = 0; //food items only
-        this.claimedItems = [];
-        this.total = 0; //includes tax and tip
+        this.claimedItems = []; //food items only 
+        this.allocTip = 0; //allocated tip
+        this.allocTax = 0; //alocated tax
+        this.proportion  = 0; //owner's portion of the subtotal relative to everyone
     }
 
     resetTotal(){
-        this.total = 0;
+        this.subtotal = 0;
+        this.allocTax = 0;
+        this.allocTax = 0;
     }
 
     resetClaimedItems(){
