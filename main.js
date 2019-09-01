@@ -336,12 +336,15 @@ function getItemPrice(inputID, textElement) {
     //check if user entered a math expression for the price
     if(isAnExpression(price)){
         price = solveExpression(price);
+    }else{
+        price = Number(inputElement.value).toFixed(2);
     }
 
-    //check if user entered NaN input
-    if(isNaN(parseFloat(price))){
+    // //check if user entered NaN input
+    if(isNaN(Number(price))){
         price = 0;
     }
+    
     //Display inputted item price
     textElement.textContent = `$${price}`;
 
@@ -362,12 +365,12 @@ function getTipAmt(){
     const tipInputElement = document.getElementById("tip-input");
     let newTipAmt;
     if (isAnExpression(tipInputElement.value)){
-        newTipAmt = parseFloat(solveExpression(tipInputElement.value), 2);
+        newTipAmt = Number(solveExpression(tipInputElement.value)).toFixed(2);
     }
-    else if(isNaN(parseFloat(tipInputElement.value))){
+    else if(isNaN(Number(tipInputElement.value))){
         newTipAmt = 0.00;
     }else{
-        newTipAmt = parseFloat(tipInputElement.value, 2);
+        newTipAmt = Number(tipInputElement.value).toFixed(2);
     }
 
     //keep track of old tip amt to update runningTotal
@@ -379,7 +382,7 @@ function getTipAmt(){
     }else{
     //else, grab the old tip amount and convert it into a float    
         const oldTipAmtStr = tipSpanElement.textContent.replace("$", "");
-        oldTipAmt = parseFloat(oldTipAmtStr);
+        oldTipAmt = Number(oldTipAmtStr);
     }
 
     //update the span with the newest tip amount
@@ -557,7 +560,7 @@ function calculate() {
     for (let i = 0; i < itemsArray.length; i++) {
         const targetItem = itemsArray[i];
         const allocPrice = targetItem.price / targetItem.numClaimers;
-        itemsSubtotal += parseFloat(targetItem.price); //to get the subtotal for all items and all owners
+        itemsSubtotal += Number(targetItem.price); //to get the subtotal for all items and all owners
     
         for (let j = 0; j < targetItem.claimed.length; j++) {
             if (targetItem.claimed[j] > 0) {
@@ -579,7 +582,7 @@ function checkTotal(){
     let highestOwner = 0; //figure out who has highest subtotal to allocate rounding diff to
 
     for(let i=0; i<ownersArray.length; i++){
-        allocatedTotalAll += parseFloat(ownersArray[i].subtotal) + parseFloat(ownersArray[i].allocTip);
+        allocatedTotalAll += Number(ownersArray[i].subtotal) + Number(ownersArray[i].allocTip);
         console.log("i: " + i + " allocated total = " + allocatedTotalAll);
         if(ownersArray[i].subtotal > ownersArray[highestOwner]){
             highestOwner = i;
@@ -606,7 +609,7 @@ function checkTotal(){
         }
     }else{//difference is due to an unallocated item
         const errorDiv = document.getElementById("error-div");
-        errorDiv.textContent = "Allocated Total = $" + parseFloat(allocatedTotalAll).toFixed(2) +
+        errorDiv.textContent = "Allocated Total = $" + Number(allocatedTotalAll).toFixed(2) +
             ". One or more items may not have been allocated...";
     }
 }
@@ -651,9 +654,9 @@ function allocateTip(populationSubtotal){
     }else{
         //get inputted tip amt
         if(isAnExpression(tipInputElement.value)){
-            tipAmt = parseFloat(solveExpression(tipInputElement.value), 2);
+            tipAmt = Number(solveExpression(tipInputElement.value)).toFixed(2);
         }else{
-            tipAmt = parseFloat(tipInputElement.value, 2);
+            tipAmt = Number(tipInputElement.value).toFixed(2);
         }
         if(isNaN(tipAmt)){
             tipAmt = 0.00;
@@ -665,7 +668,7 @@ function allocateTip(populationSubtotal){
         let proportion  = ownersArray[i].subtotal/populationSubtotal;
         console.log("populationSubtotal is " + populationSubtotal);
         console.log("porportion is: " + proportion);
-        ownersArray[i].proportion = parseFloat(proportion).toFixed(2);
+        ownersArray[i].proportion = Number(proportion).toFixed(2);
         let allocTip = (proportion * tipAmt);
         ownersArray[i].allocTip = allocTip;
         console.log(ownersArray[i].nickname + ": subtotal: " + ownersArray[i].subtotal +", "
@@ -686,8 +689,8 @@ function resetOwnerTotals() {
 
 
 function updateRunningTotal(oldPrice, itemPrice) {
-    runningTotal -= parseFloat(oldPrice); 
-    runningTotal += parseFloat(itemPrice);
+    runningTotal -= Number(oldPrice); 
+    runningTotal += Number(itemPrice);
     const targetElement = document.getElementById("running-total");
     targetElement.textContent = "Total: $" + runningTotal.toFixed(2);
 }
@@ -717,22 +720,22 @@ function displaySummary() {
             const targetClaimedItem = targetOwner.claimedItems[j];
             const claimedItemCost = targetClaimedItem[1];
             targetOwnerTotal += claimedItemCost;
-            newLI_item.textContent = targetClaimedItem[0].itemName + " - $" + parseFloat(claimedItemCost).toFixed(2);
+            newLI_item.textContent = targetClaimedItem[0].itemName + " - $" + Number(claimedItemCost).toFixed(2);
             newUL_claimedItems.appendChild(newLI_item);
         }
 
         //begin section for owner's tip and tax
         const newLI_tip = document.createElement("li");
         newLI_tip.className = "liTip";
-        newLI_tip.textContent = "Tax & Tip - $" + parseFloat(ownersArray[i].allocTip).toFixed(2);
+        newLI_tip.textContent = "Tax & Tip - $" + Number(ownersArray[i].allocTip).toFixed(2);
         newUL_claimedItems.appendChild(newLI_tip);
-        targetOwnerTotal += parseFloat(ownersArray[i].allocTip);
+        targetOwnerTotal += Number(ownersArray[i].allocTip);
         targetOwnerTotal = targetOwnerTotal;
         console.log("targetOwnerTotal: " + targetOwnerTotal);
 
         const newSpan_ownerTotal = document.createElement("span")
         newSpan_ownerTotal.className = "ownerTotal-span";
-        newSpan_ownerTotal.textContent = "$"+ parseFloat(targetOwnerTotal).toFixed(2);
+        newSpan_ownerTotal.textContent = "$"+ Number(targetOwnerTotal).toFixed(2);
 
         newDiv_owner.appendChild(newSpan_name);
         // newDiv_owner.appendChild(newSpan_proportion);
