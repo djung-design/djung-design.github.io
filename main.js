@@ -24,6 +24,8 @@ function setEventsListener() {
                 eventTarget.srcElement.parentElement.childNodes[4]);
         }
     });
+    //TO DO: add functionality for user to enter a formula to  get a price 
+
     /*EventListener: When user clicks into tip input box, tip amt should change 
     with user input*/
     const tipInputElement = document.querySelector("#tip-input");
@@ -62,17 +64,28 @@ function setEventsListener() {
 }
 
 
+
 function onOKButtonClick() {
+    resetMessages();
     if(!firstRun){
         return;
     }
-    getNumOwners();
-    updateOwnersArray();
-    createOwnerNames();
-    setNameEventListeners();
-    unhideButtons();
-    firstRun = false;
+    if(numOwnersIsValid()){
+        getNumOwners();
+        updateOwnersArray();
+        createOwnerNames();
+        setNameEventListeners();
+        unhideButtons();
+        hideNumOwnersForm();
+        firstRun = false;
+    }
+    
+
     //if pressing the OKbutton again to update number of owners
+}
+
+function hideNumOwnersForm(){
+    document.getElementById("num-owners-form").style.display= "none";
 }
 
 function unhideButtons(){
@@ -148,6 +161,7 @@ function setLabelEventListeners(){
     });
     
 }
+
 
 //0 = show input field to change owner name
 //1 = show input field to change item name
@@ -246,7 +260,17 @@ function resetMessages(){
 
 function getNumOwners() {
     numOwners = document.getElementById("num-owners").value;
-    document.getElementById("owners-result").textContent = numOwners;
+    document.getElementById("owners-result").textContent = numOwners; 
+}
+
+function numOwnersIsValid(){
+    const numOwners = document.getElementById("num-owners").value;
+    if(isNaN(numOwners) || numOwners <=0){
+        let errorDiv = document.getElementById("error-div");
+        errorDiv.textContent = "Please enter a number greater than zero.";
+        return false;
+    }
+    return true;
 }
 
 function updateOwnersArray() {
@@ -286,13 +310,39 @@ function createOwnerNames() {
     }
 }
 
+
+//User entered an expression for price input (denoted by "="). Solve expression to get the price
+function solveExpression(priceInputValue){
+    let expressionArray = priceInputValue.split("=");
+    let price = eval(expressionArray[1]);
+    console.log(expressionArray[1]);
+    console.log(price);
+    //check if this function should round to 2 decimal places
+    return price.toFixed(2)
+}
+
+function isAnExpression(priceInputValue){
+    if(priceInputValue[0] === '='){
+        return true;
+    }
+    return false;
+}
+
+
 function getItemPrice(inputID, textElement) {
-    //Display inputted item price
     const inputElement = document.getElementById(inputID);
     let price = inputElement.value;
+
+    //check if user entered a math expression for the price
+    if(isAnExpression(price)){
+        price = solveExpression(price);
+    }
+
+    //check if user entered NaN input
     if(isNaN(parseFloat(price))){
         price = 0;
     }
+    //Display inputted item price
     textElement.textContent = `$${price}`;
 
     //Update the price in the Item Object
@@ -311,7 +361,10 @@ function getTipAmt(){
    //input is not a number, so default the value to zero
     const tipInputElement = document.getElementById("tip-input");
     let newTipAmt;
-    if(isNaN(parseFloat(tipInputElement.value))){
+    if (isAnExpression(tipInputElement.value)){
+        newTipAmt = parseFloat(solveExpression(tipInputElement.value), 2);
+    }
+    else if(isNaN(parseFloat(tipInputElement.value))){
         newTipAmt = 0.00;
     }else{
         newTipAmt = parseFloat(tipInputElement.value, 2);
@@ -358,7 +411,7 @@ function addItem() {
     const newInput = document.createElement("input");
     newInput.className = "item-price-input";
     newInput.id = "priceinput" + itemsArray.length;
-    newInput.setAttribute("type", "number");
+    newInput.setAttribute("type", "text");
     newInput.setAttribute("placeholder", "Enter item price");
     //create the span element (to display inputted price)
     const newSpan = document.createElement("span");
@@ -559,7 +612,7 @@ function checkTotal(){
 }
 
 function createTipDiv(){
-    //if tip has not been created yet, make the tip 
+    //if tip has not been created yet, make the tip div
     if(document.getElementById("tip-wrapper") == null){
         const tipDiv = document.createElement("div");
         tipDiv.id = "tip-wrapper";
@@ -568,7 +621,7 @@ function createTipDiv(){
         tipHeader.id = "tip-header";
         const tipInput = document.createElement("input");
         tipInput.id = "tip-input";
-        tipInput.setAttribute("type", "number");
+        tipInput.setAttribute("type", "text");
         tipInput.setAttribute("placeholder", "Enter tip amount");
         const tipAmtSpan = document.createElement("span");
         tipAmtSpan.id = "tip-amt-span";
@@ -592,19 +645,20 @@ function createTipDiv(){
 function allocateTip(populationSubtotal){
     const tipInputElement = document.getElementById("tip-input");
     let tipAmt;
-    console.log("entered allocateTip()");
     if(tipInputElement == null){
         //tip hasn't been created yet, so do nothing
         return;
     }else{
         //get inputted tip amt
-        tipAmt = parseFloat(tipInputElement.value, 2);
+        if(isAnExpression(tipInputElement.value)){
+            tipAmt = parseFloat(solveExpression(tipInputElement.value), 2);
+        }else{
+            tipAmt = parseFloat(tipInputElement.value, 2);
+        }
         if(isNaN(tipAmt)){
             tipAmt = 0.00;
         }
     }
-
-
     //allocate the tip amount to each owner
     //pushes allocated tip amount to each owner object
     for (let i=0; i<ownersArray.length; i++){
@@ -630,12 +684,8 @@ function resetOwnerTotals() {
     }
 }
 
-//TO DO: FIX THE RNNING TOTAL - ADDS WRONG IF CHANGE PRICE OT SOMETHING SMALLER
-//NEED TO RUN THROUGH ITEM ARRAY OR SELECT THE CHANGED ITEM AND +/- THAT AMT
+
 function updateRunningTotal(oldPrice, itemPrice) {
-    // if(isNaN(parseFloat(itemPrice))){
-    //     itemPrice = 0.00;
-    // }
     runningTotal -= parseFloat(oldPrice); 
     runningTotal += parseFloat(itemPrice);
     const targetElement = document.getElementById("running-total");
@@ -675,10 +725,6 @@ function displaySummary() {
         const newLI_tip = document.createElement("li");
         newLI_tip.className = "liTip";
         newLI_tip.textContent = "Tax & Tip - $" + parseFloat(ownersArray[i].allocTip).toFixed(2);
-        // const newLI_tax = document.createElement("li");
-        // newLI_tax.className = "liTax";
-        //end section for owner's tip and tax 
-        //add owner's allocated tip to the subtotal
         newUL_claimedItems.appendChild(newLI_tip);
         targetOwnerTotal += parseFloat(ownersArray[i].allocTip);
         targetOwnerTotal = targetOwnerTotal;
