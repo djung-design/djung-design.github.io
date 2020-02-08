@@ -1,85 +1,197 @@
-body{
-    padding: 10px;
+@font-face {
+    font-family: 'Oswald';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap; src: url(https://fonts.gstatic.com/s/oswald/v29/TK3_WkUHHAIjg75cFRf3bXL8LICs1_FvsUZiYySUhiCXAA.woff) format('woff');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-#summary-wrapper{
-    border-top: solid grey 1px;
-    margin: 10px;
-    margin-top: 30px;
-
+@font-face {
+    font-family: 'Pacifico';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap; src: local('Pacifico Regular'), local('Pacifico-Regular'), url(https://fonts.gstatic.com/s/pacifico/v16/FwZY7-Qmy14u9lezJ-6H6MmBp0u-.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-#running-total{
-    font-weight: bold;
+@font-face {
+    font-family: 'Roboto Slab';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap; src: url(https://fonts.gstatic.com/s/robotoslab/v10/BngbUXZYTXPIvIBgJJSb6s3BzlRRfKOFbvjo0oSmb2RlV9Su1cai.woff) format('woff');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/**
+ *  font-family: 'Pacifico', cursive;
+ *  font-family: 'Roboto Slab', serif;
+ *  font-family: 'Oswald', sans-serif;
+ */
+body {
+    padding: 25px;
+    max-width: 425px;
+    margin: 0 auto;
+    background-color: hsla(35, 55%, 96%, 1);
+    font-family: 'Roboto Slab', serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#owners-result {
+    font-family: 'Pacifico', cursive;
+    font-size: 2rem;
+    color: #e0123e; 
+}
+
+#owner-names-list {
+    display: inline-block;
+    margin-bottom: 1em;
+}
+
+#owner-names-list li {
+    margin: 10px 0;
+    width: 100%;
+    float: left;
+    clear: both;
+}
+
+#summary-wrapper {
+    border-top: solid #e0123e 3px;
+    margin: 10px 0;
+    margin-top: 2.8rem;
+}
+
+#running-total {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.35rem;
     float: right;
     margin-top: 10px;
-    margin-right: 10px;
+    margin-right: 5px;
 }
 
-
-#add-item-button{
-    margin-right: 0;
+#add-item-button {
+    margin-left: 0px;
 }
 
-#calculate-button{
-    margin-left: 0;
+#tip-wrapper {
+    margin: 20px 0px;
+    padding: 10px 15px 15px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 
+        0 3.3px 5.3px -10px rgba(0, 0, 0, 0.028),
+        0 11.2px 17.9px -10px rgba(0, 0, 0, 0.042),
+        0 50px 80px -10px rgba(0, 0, 0, 0.07);
 }
 
-#tip-wrapper{
-    margin: 10px;
-    background: #c47586;
-    border: solid grey 1px;
-    padding: 10px;
-}
-
-#tip-input{
+#tip-input {
     display: inline-block;
+    margin-top: 8px;
+    width: 70%;
 }
 
-#tip-header{
+#tip-header {
     display: inline;
+    font-family: 'Pacifico', cursive;
+    font-size: 1.35rem;
+    color: #e0123e;
 }
 
-#tip-amt-span{
-    font-weight: bold;
+#tip-amt-span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.2rem;
     float: right;
+    margin-top: 8px;
 }
 
 .item-header {
     display: inline;
+    font-family: 'Pacifico', cursive;
+    font-size: 1.35rem;
+    color: #e0123e;
 }
 
-.item-price-input{
+.item-price-input {
     display: inline-block;
+    margin-top: 8px;
+    width: 70%;
 }
 
 .item-price {
     float: right;
-    font-weight: bold;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.2rem;
+    margin-top: 8px;
+    margin-left: 8px;
 }
 
-.item-wrap{
-    margin: 10px;
-    background: #b3d1ff;
-    border: solid grey 1px;
-    padding: 10px;
+.item-wrap {
+    margin: 20px 0px;
+    padding: 10px 15px 15px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 
+        0 3.3px 5.3px -10px rgba(0, 0, 0, 0.028),
+        0 11.2px 17.9px -10px rgba(0, 0, 0, 0.042),
+        0 50px 80px -10px rgba(0, 0, 0, 0.07);
 }
 
-.owner-div{
-    margin-top: 2px;
+.owner-name {
+    margin-right: 10px;
+    line-height: 1.75rem;
+}
+
+.owner-div {
+    margin-top: 1rem;
     padding: 5px;
 }
 
-.nickname-span{
-    font-weight: bold;
+.renameOwnerButton {
+    float: right;
+    margin: 0;
 }
 
-.ownerTotal-span{
-    font-weight: bold;  
+.owners-wrap {
+    margin-top: 1rem;
+}
+
+.nickname-span {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.35rem;
+    color: #e0123e;
+}
+
+.ownerTotal-span {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.35rem;
     float: right;
 }
 
 button {
-    margin: 3px;
+    vertical-align: middle;
+    margin: 4px;
+    padding: 4px 12px;
+    font-family: 'Oswald', sans-serif;
+    background-color: #e0123e;
+    color: white;
+    border: none;
+    font-size: 1.1rem;
+    height: 1.75rem;
+    border-radius: 2px;
 }
 
+ul {
+    margin: 0.5rem 0;
+}
+
+input {
+    vertical-align: middle;
+    border: solid #e0123e 1px;
+    height: 1.75rem;
+    padding: 9px;
+    border-radius: 2px;
+}
+
+input[type='checkbox']{
+    margin-right: 4px;
+}
